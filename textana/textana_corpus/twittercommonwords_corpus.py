@@ -1,0 +1,6 @@
+twitterCommonWords = [\
+    "*"
+]
+
+twitterCommonWords.sort()
+
