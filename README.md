@@ -9,7 +9,7 @@ net slang to full phrases during its analysis.
 PostAnalyzer is based on Python 2.7 and runs as a RESTful Tornado web application and requires the use of the NLTK,
 the natural language toolkit.
 
-### Example using curl command to post JSON to Post Analyzer server:
+### Example using curl command to send (via HTTP POST) JSON to Post Analyzer server:
 $ curl -H 'Content-Type: application/json' -X  POST 'http://localhost:8889/api/fullscan' -d '{"text":"One of the rules that you hear a lot is to simplify your image. Sometimes, especially in street photography, you can’t simplify the scene. Sometimes the scene has to speak for itself. Whether it’s chaos or clutter, sometimes you need to just go with what you have and work with it. There are stories that can be told just by being the silent observer and recording the image at that place and time. Lori Peterson is an award winning photographer based out of the St. Louis Metro Area. Her work ranges from creative portraits to very unique fine art photography. See more at: http://digital-photography-school.com/photography-rules-finding-balance "}'
 
 ### Response:
