@@ -12,7 +12,7 @@ the natural language toolkit.
 ## Example:
 curl -H 'Content-Type: application/json' -X  POST 'http://localhost:8889/api/fullscan' -d '{"text":"Yo here is a tip for your ass: One of the rules that you hear a lot is to simplify your image. Sometimes, especially in street photography, you can’t simplify the scene. Sometimes the scene has to speak for itself. Whether it’s chaos or clutter, sometimes you need to just go with what you have and work with it. There are stories that can be told just by being the silent observer and recording the image at that place and time. Lori Peterson is an award winning photographer based out of the St. Louis Metro Area. Her work ranges from creative portraits to very unique fine art photography. See more at: http://digital-photography-school.com/photography-rules-finding-balance "}'
 
-## Response:
+## Response:```
 {
    "status":"success",
    "result":{
@@ -42,3 +42,4 @@ curl -H 'Content-Type: application/json' -X  POST 'http://localhost:8889/api/ful
       "has_net_lingo":false
    }
 }
+```
