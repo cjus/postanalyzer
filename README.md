@@ -42,3 +42,11 @@ $ curl -H 'Content-Type: application/json' -X  POST 'http://localhost:8889/api/f
    }
 }
 ```
+
+### License
+This code is offered under a BSD license.
+
+### Code History
+I started playing with textual analysis in 2009 when I was working on a kids site (educational search engine) called ZoeyBot.
+I later used the Python code used here to create tweetspeedreader and twsift - tools that process Twitter streams. Along the way
+I learned a lot about natural language processing and now have a need for a server which can, once again, process text. I'm offering the code here in case anyone else has that same need.
