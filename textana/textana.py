@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-import string, os
+""" Text processing library interface
+Tailors text processing based on application domain
+Copyright 2009 Carlos Justiniano. All Rights Reserved.
+"""
+
+import string
 from textprocessing import TextProcessing
 
 
@@ -9,24 +14,21 @@ class ProcessText(object):
 
     def process(self, obj):
         for t in obj:
-            obj[t]['results'] = self.processText(obj[t]['text'])
+            obj[t]['results'] = self.process_text(obj[t]['text'])
         return obj
 
-    def processText(self, text):
+    def process_text(self, text):
 
         phrases = []
-        #stemmedphrases = []
-        sentences = []
-        richnessOfPosts = []
-        contacts = []
+        #stemmed_phrases = []
+        richness_of_posts = []
 
-        richnessOfPost = 0.0
-        hasBadWords = False
-        hasSlang = False
-        hasNetLingo = False
-        hasLink = False
-        hasQualifier = False
-        hasReTweet = False
+        has_bad_words = False
+        has_slang = False
+        has_net_lingo = False
+        has_link = False
+        has_qualifier = False
+        has_retweet = False
 
         # fixup text
         text = text.replace(u"\u2019", "'")
@@ -37,27 +39,27 @@ class ProcessText(object):
 
         # experimental: convert non-digit single characters to periods so that they cause sentence breaks.
         # character must have space before and after itself to qualify.
-        text = self.ta.convertSingleCharacterSymbolsToPeriods(text)
+        text = self.ta.convert_single_character_symbols_to_periods(text)
 
         # extract URIs
-        uris = self.ta.extractURIs(text)
+        uris = self.ta.extract_URIs(text)
         if len(uris) > 0:
-            hasLink = True
+            has_link = True
 
         # decode html entity characters
-        text = self.ta.decodeSpecialChars(text)
+        text = self.ta.decode_special_chars(text)
 
         #  extract contacts
-        contacts = self.ta.extractContacts(text)
+        contacts = self.ta.extract_contacts(text)
         if len(contacts) > 0:
-            hasQualifier = True
+            has_qualifier = True
 
         # extract topics
-        topics = self.ta.extractTopics(text)
-        topics = self.ta.cleanupUnicodeCharsInTopics(topics)
-        topics = self.ta.removePreceedingPoundChar(topics)
+        topics = self.ta.extract_topics(text)
+        topics = self.ta.cleanup_unicode_chars_in_topics(topics)
+        topics = self.ta.remove_preceeding_pound_char(topics)
         if len(topics) > 0:
-            hasQualifier = True
+            has_qualifier = True
 
         # remove urls from text
         for url in uris:
@@ -68,236 +70,235 @@ class ProcessText(object):
             text = text.replace(contact, " ")
 
         # convert text to one or more sentences
-        sentences = self.ta.convertToSentences(text)
+        sentences = self.ta.convert_to_sentences(text)
 
         for aSentence in sentences:
             text = " ".join(aSentence)
 
             # remove special characters
-            text = self.ta.stripSpecialChars(text)
+            text = self.ta.strip_special_chars(text)
 
             # this may be the single most important step before using textana!
             # Eliminate non printable characters, namely unicode chars!
             text = filter(lambda x: x in string.printable, text)
 
             # Cleanup elipsees on words - found in sentenses where a sentence thought trails...
-            newWordList = []
-            wordList = text.lower().split(" ")
-            for w in wordList:
-                w = self.ta.stripTrailingPeriods(w)
-                newWordList.append(w)
-            wordList = newWordList
+            new_word_list = []
+            word_list = text.lower().split(" ")
+            for w in word_list:
+                w = self.ta.strip_trailing_periods(w)
+                new_word_list.append(w)
+            word_list = new_word_list
 
             # transpose words like can't and won't
-            newWordList = []
-            for w in wordList:
+            new_word_list = []
+            for w in word_list:
                 w = self.ta.transpose(w)
                 if w.endswith("'s"):
                     w = w[:-2] + ' is'
                 if w.find(' ') > -1:
                     for nw in w.split(' '):
-                        newWordList.append(nw)
+                        new_word_list.append(nw)
                 else:
-                    newWordList.append(w)
-            wordList = newWordList
+                    new_word_list.append(w)
+            word_list = new_word_list
 
             # ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
-            #if self.ta.isEnglish(wordList) == False:
+            #if self.ta.is_english(word_list) == False:
             #	print "Not english:", text
             #	continue;
 
             # remove excess qoutes
-            wordList = self.ta.removeQoutes(wordList)
+            word_list = self.ta.remove_quotes(word_list)
 
             # remove commas
-            wordList = self.ta.removeCommas(wordList)
+            word_list = self.ta.removeCommas(word_list)
 
             # ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
             # handle time
-            newWordList = []
-            for w in wordList:
-                w = self.ta.fixTime(w)
+            new_word_list = []
+            for w in word_list:
+                w = self.ta.fix_time(w)
                 if w.find(' ') > -1:
                     for nw in w.split(' '):
-                        newWordList.append(nw)
+                        new_word_list.append(nw)
                 else:
                     # if word contains a colon and was not a time, remove colon from word
-                    if self.ta.isTime(w) == False:
+                    if not self.ta.is_time(w):
                         w = w.replace(":", " ")
-                    newWordList.append(w)
+                    new_word_list.append(w)
 
-            wordList = newWordList
+            word_list = new_word_list
 
             # ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
             # clean-up non-dates
-            newWordList = []
-            for w in wordList:
+            new_word_list = []
+            for w in word_list:
                 if w.count("/") > 0 or w.count("-") > 0:
-                    w = self.ta.handleEmbeddedDash(w)
-                    if self.ta.isDate(w) == False:
+                    w = self.ta.handle_embedded_dash(w)
+                    if not self.ta.isDate(w):
                         if w == "w/":
                             w = "with"
                         if w == "w/o":
                             w = "without"
-                        w = w.replace("/", " ") #.replace("-"," ")
-                newWordList.append(w)
+                        w = w.replace("/", " ")  # .replace("-"," ")
+                new_word_list.append(w)
 
-            wordList = newWordList
+            word_list = new_word_list
 
             # ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
             # remove periods
-            wordList = self.ta.removePeriods(wordList)
+            word_list = self.ta.remove_periods(word_list)
 
             # remove invalid words
-            newWordList = []
-            for w in wordList:
+            new_word_list = []
+            for w in word_list:
                 exclude = False
-                tup = self.ta.largestRepeatingPattern(w)
+                tup = self.ta.largest_repeating_pattern(w)
                 if tup[1] > 2:
                     exclude = True
-                if self.ta.hasTrailingChar(w) == True:
+                if self.ta.has_trailing_char(w):
                     exclude = True
-                if exclude == False:
-                    newWordList.append(w)
-            wordList = newWordList
+                if not exclude:
+                    new_word_list.append(w)
+            word_list = new_word_list
 
             # ensure that we have single word lists
-            #wordList = self.ta.splitWords(wordList)
+            #word_list = self.ta.split_words(word_list)
 
             # check for ReTweet
-            for w in wordList:
+            for w in word_list:
                 if w == "rt":
-                    hasReTweet = True
+                    has_retweet = True
                     break
 
-            wordList = self.ta.removeWordsFromList(wordList, ["@", "rt"])
-            #wordList = self.ta.removeWord(wordList, "rt")
+            word_list = self.ta.remove_words_from_list(word_list, ["@", "rt"])
+            #word_list = self.ta.remove_word(word_list, "rt")
 
             # remove unicode chars
-            wordList = self.ta.removeUnicodeChars(wordList)
+            word_list = self.ta.remove_unicode_chars(word_list)
 
             # Remove stray chars
-            wordList = self.ta.cleanupStrayChars(wordList)
+            word_list = self.ta.cleanup_stray_chars(word_list)
 
             # check for qualifiers
-            for w in wordList[:]:
-                if self.ta.isEmail(w) == False and w.startswith('@'):
-                    hasQualifier = True
+            for w in word_list[:]:
+                if not self.ta.isEmail(w) and w.startswith('@'):
+                    has_qualifier = True
                     #contacts.append(w)
-                    wordList.remove(w)
+                    word_list.remove(w)
 
             # after translate functions above we want to ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
             # has bad words or slang?
-            if hasBadWords == False:
-                hasBadWords = self.ta.hasBadWords(wordList)
-            if hasSlang == False:
-                hasSlang = self.ta.hasSlang(wordList)
-            if hasNetLingo == False:
-                hasNetLingo = self.ta.hasNetLingo(wordList)
+            if not has_bad_words:
+                has_bad_words = self.ta.has_bad_words(word_list)
+            if not has_slang:
+                has_slang = self.ta.has_slang(word_list)
+            if not has_net_lingo:
+                has_net_lingo = self.ta.has_net_lingo(word_list)
 
             # remove suppress words.  Those are words which add little meaning
-            wordList = self.ta.removeSuppressWords(wordList)
+            word_list = self.ta.remove_suppress_words(word_list)
 
             # after translate functions above we want to ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
             # fixing misspellings, translating twitter, net and slang lingo
-            newWordList = []
-            for w in wordList:
-                if self.ta.isURI(w):
+            new_word_list = []
+            for w in word_list:
+                if self.ta.is_URI(w):
                     w = " "
                 else:
-                    w = self.ta.removeLeadingChar(w, "`")
-                    w = self.ta.removeLeadingChar(w, "'")
-                    w = self.ta.removeLeadingChar(w, "<")
-                    w = self.ta.removeLeadingChar(w, ">")
-                    w = self.ta.removeLeadingChar(w, "&")
-                    w = self.ta.removeLeadingChar(w, "-")
-                    w = self.ta.removeLeadingChar(w, "/")
-                    w = self.ta.removeLeadingChar(w, "\"")
-                    w = self.ta.fixSpelling(w)
-                    w = self.ta.transNetLingo(w)
-                    #w = self.ta.fixSlangLingo(w)
-                    w = self.ta.twitterTranslate(w)
-                    #w = self.ta.transDoubleWord(w)
+                    w = self.ta.remove_leading_char(w, "`")
+                    w = self.ta.remove_leading_char(w, "'")
+                    w = self.ta.remove_leading_char(w, "<")
+                    w = self.ta.remove_leading_char(w, ">")
+                    w = self.ta.remove_leading_char(w, "&")
+                    w = self.ta.remove_leading_char(w, "-")
+                    w = self.ta.remove_leading_char(w, "/")
+                    w = self.ta.remove_leading_char(w, "\"")
+                    w = self.ta.fix_spelling(w)
+                    w = self.ta.trans_net_lingo(w)
+                    #w = self.ta.fix_slang_lingo(w)
+                    w = self.ta.twitter_translate(w)
+                    #w = self.ta.trans_double_word(w)
 
-                #if self.ta.dictionaryWord(w) == False and self.ta.isName(w) == False:
+                #if self.ta.dictionary_word(w) == False and self.ta.is_name(w) == False:
                 #	if len(w) > 2 and w.endswith('in') == True:
                 #		nw = w + 'g'
-                #		if self.ta.dictionaryWord(nw) == True:
+                #		if self.ta.dictionary_word(nw) == True:
                 #			w = nw
-                #			hasSlang = True
-                #		if self.ta.dictionaryWord(nw[:-3]) == True:
+                #			has_slang = True
+                #		if self.ta.dictionary_word(nw[:-3]) == True:
                 #			w = nw[:-3]
-                #			#hasSlang = True
+                #			#has_slang = True
                 #	if w.endswith('z') == True:
                 #		nw = w[:-1]
-                #		if self.ta.dictionaryWord(nw) == True:
+                #		if self.ta.dictionary_word(nw) == True:
                 #			w = nw
-                #			#hasSlang = True
-                newWordList.append(w)
+                #			#has_slang = True
+                new_word_list.append(w)
 
-            wordList = newWordList
+            word_list = new_word_list
 
             # again, after translate functions above we want to ensure that we have single word lists
-            wordList = self.ta.splitWords(wordList)
+            word_list = self.ta.split_words(word_list)
 
             # Check again, because above translation may have introduced new bad,slang or netlingo terms
-            if hasBadWords == False:
-                hasBadWords = self.ta.hasBadWords(wordList)
-            if hasSlang == False:
-                hasSlang = self.ta.hasSlang(wordList)
-            if hasNetLingo == False:
-                hasNetLingo = self.ta.hasNetLingo(wordList)
+            if not has_bad_words:
+                has_bad_words = self.ta.has_bad_words(word_list)
+            if not has_slang:
+                has_slang = self.ta.has_slang(word_list)
+            if not has_net_lingo:
+                has_net_lingo = self.ta.has_net_lingo(word_list)
 
             # append to list of phrases
-            #self.ta.findPhrases(wordList, phrases, stemmedphrases)
-            self.ta.findPhrases(wordList, phrases, None)
+            # self.ta.find_phrases(word_list, phrases, stemmed_phrases)
+            self.ta.find_phrases(word_list, phrases, None)
 
             # determine richness of post
-            postScale = 1.0  #don't scale at this time
-            richnessOfPost = self.ta.richnessOfText(wordList) * postScale * 100.0
-            if hasReTweet == True:  # if retweet then the user didn't really say this so reduce score
-                richnessOfPost = richnessOfPost * 0.25
+            post_scale = 1.0  # don't scale at this time
+            richness_of_post = self.ta.richness_of_text(word_list) * post_scale * 100.0
+
+            if has_retweet:  # if retweet then the user didn't really say this so reduce score
+                richness_of_post *= 0.25
             if len(phrases) > 1:
-                richnessOfPost = richnessOfPost + (len(phrases) * 0.75)
+                richness_of_post += len(phrases) * 0.75
             if len(contacts) > 1:
-                richnessOfPost = richnessOfPost + 2.0
+                richness_of_post += 2.0
+            if has_bad_words:
+                richness_of_post *= 0.01
+            if richness_of_post > 100:
+                richness_of_post = 100
+            richness_of_posts.append(richness_of_post)
 
-            if hasBadWords == True:
-                richnessOfPost = richnessOfPost * 0.01
-
-            if richnessOfPost > 100:
-                richnessOfPost = 100
-            richnessOfPosts.append(richnessOfPost)
-
-        # compute average richnessOfPost
-        richnessOfPost = 0.0
-        if len(richnessOfPosts) > 0:
-            richnessOfPost = sum(richnessOfPosts) / len(richnessOfPosts)
+        # compute average richness_of_post
+        richness_of_post = 0.0
+        if len(richness_of_posts) > 0:
+            richness_of_post = sum(richness_of_posts) / len(richness_of_posts)
 
         js = {
             'uris': uris,
             'contacts': contacts,
-            'topics': topics,
+            #'topics': topics,
             'subphrases': phrases,
-            #'stemmedSubPhrases':stemmedphrases,
-            'richnessOfPost': "%.2f" % richnessOfPost,
-            'hasBadWords': hasBadWords,
-            'hasSlang': hasSlang,
-            'hasNetLingo': hasNetLingo,
-            'hasLink': hasLink,
-            'hasQualifier': hasQualifier,
-            'hasReTweet': hasReTweet
+            #'stemmedSubPhrases': stemmed_phrases,
+            'richness_of_post': "%.2f" % richness_of_post,
+            'has_bad_words': has_bad_words,
+            'has_slang': has_slang,
+            'has_net_lingo': has_net_lingo,
+            'has_link': has_link,
+            'has_qualifier': has_qualifier,
+            #'has_retweet': has_retweet
         }
         return js

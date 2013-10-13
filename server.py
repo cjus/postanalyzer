@@ -57,7 +57,7 @@ class FullScanAPIHandler(BaseHandler):
         pt = ProcessText()
         res = {
             "status": "success",
-            "result": pt.processText(text)
+            "result": pt.process_text(text)
         }
         self.send_response(res)
 
@@ -68,5 +68,5 @@ application = tornado.web.Application([
 ])
 
 if __name__ == "__main__":
-    application.listen(8888)
+    application.listen(8889)
     tornado.ioloop.IOLoop.instance().start()

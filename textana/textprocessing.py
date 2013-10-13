@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2009 Carlos Justiniano. All Rights Reserved.
-#
-# Text processing library based on ZoeyBot textprocessing.dll
-# Enhanced using the Natural Language Tool Kit library (NLTK)
-#
+""" Text processing library based on ZoeyBot textprocessing.dll
+Enhanced using the Natural Language Tool Kit library (NLTK)
+Copyright 2009 Carlos Justiniano. All Rights Reserved.
+"""
 
-'''A library that provides text processing functionality'''
+__author__ = ('Carlos Justiniano (carlos.justiniano@gmail.com)',)
 
 import string
 import re
@@ -16,106 +15,83 @@ import textana_corpus
 
 
 class TextProcessing:
-    _VOWELS = ""
-    _suppressList = []
-    _dictionary = []
-    _knownPhrases = []
-    _badwords = ""
-    _noiseWords = []
-    _namecallingWords = []
-    _nameWords = []
-    _misspelledWords = {}
-    _daleWords = []
-    _domainExtensions = []
-    _doublewords = {}
-    _twitterCommonWords = []
-    _commonPhrases = []
-    _transposeMap = {}
-    _twlingo = {}
-    _netlingo = {}
-    _slangLingo = {}
-
-    pStemmer = stemmer.PorterStemmer()
-
     def __init__(self):
-        self._VOWELS = "aeiouy"
-        self._suppressList = ["lol"]
-        self._loadCorpora()
+        self.pstemmer = stemmer.PorterStemmer()
 
-    def _loadCorpora(self):
+        self.VOWELS = "aeiouy"
+        self.suppress_list = ["lol"]
+
         # load english dictionary
-        self._dictionary = textana_corpus.dictionary
+        self.dictionary = textana_corpus.dictionary
 
-        # load badwords corpus
-        self._badwords = textana_corpus.badwords
+        # load bad words corpus
+        self.bad_words = textana_corpus.bad_words
 
         # load noise words corpus
-        self._noiseWords = textana_corpus.noiseWords
+        self.noise_words = textana_corpus.noise_words
 
         # load name calling corpus
-        self._namecallingWords = textana_corpus.namecallingWords
+        self.name_calling_words = textana_corpus.name_calling_words
 
         # load name corpus
-        self._nameWords = textana_corpus.nameWords
+        self.name_words = textana_corpus.name_words
 
         # load misspelling corpus
-        self._misspelledWords = textana_corpus.misWords
+        self.misspelled_words = textana_corpus.mis_words
 
         # load dale corpus
-        self._daleWords = textana_corpus.daleWords
+        self.dale_words = textana_corpus.dale_words
 
         # load transpose map corpus
-        self._transposeMap = textana_corpus.transposeMap
+        self.transpose_map = textana_corpus.transpose_map
 
         # load twitter common words corpus
-        self._twitterCommonWords = textana_corpus.twitterCommonWords
+        self.twitter_common_words = textana_corpus.twitter_common_words
 
         # load double words corpus
-        self._doublewords = textana_corpus.doubleWords
+        self.double_words = textana_corpus.double_words
 
         # load twitter lingo corpus
-        self._twlingo = textana_corpus.twlingo
+        self.twlingo = textana_corpus.twlingo
 
         # load slang corpus
-        self._slangLingo = textana_corpus.slangLingo
+        self.slang_lingo = textana_corpus.slang_lingo
 
         # load netlingo corpus
-        self._netlingo = textana_corpus.netlingo
+        self.net_lingo = textana_corpus.net_lingo
 
-        # load domain extenstions corpus
-        self._domainExtensions = textana_corpus.domainExtensions
+        # load domain extensions corpus
+        self.domain_extensions = textana_corpus.domain_extensions
 
         # load common phrases corpus
-        self._commonPhrases = textana_corpus.commonPhrases
+        self.common_phrases = textana_corpus.common_phrases
 
         # load known phrases corpus
-        self._knownPhrases = textana_corpus.knownPhrases
+        self.known_phrases = textana_corpus.known_phrases
 
-    def binarySearch(self, lst, target):
+    def binary_search(self, lst, target):
         lo = 0
         hi = len(lst)
         while lo < hi:
             mid = (lo + hi) / 2
-            midval = lst[mid]
-            if midval < target:
+            mid_val = lst[mid]
+            if mid_val < target:
                 lo = mid + 1
-            elif midval > target:
+            elif mid_val > target:
                 hi = mid
             else:
                 return mid
         return -1
 
-
-    def dictionaryWord(self, word):
-        r = self.binarySearch(self._dictionary, word)
+    def dictionary_word(self, word):
+        r = self.binary_search(self.dictionary, word)
         return r != -1
-
 
     def vowels(self, word):
         word = word.lower()
         cnt = 0
         for ch in word:
-            if ch in self._VOWELS:
+            if ch in self.VOWELS:
                 cnt += 1
         return cnt
 
@@ -123,41 +99,36 @@ class TextProcessing:
         word = word.lower()
         cnt = 0
         for ch in word:
-            if not (ch in self._VOWELS):
+            if not (ch in self.VOWELS):
                 cnt += 1
         return cnt
-
 
     def syllables(self, word):
         word = word.lower()
         cnt = 0
         for i in range(len(word)):
-            if word[i] in self._VOWELS:
+            if word[i] in self.VOWELS:
                 #check if not a vowel cluster or silent 'e'
-                if ((i - 1 ) < 0 or self._VOWELS.find(word[i - 1]) < 0) and (
-                                        i + 1 == len(word) and i - 1 > 0 and self._VOWELS.find(word[i - 1]) < 0 and
-                            word[i] == 'e') != True:
-                    cnt += 1
+                if ((i - 1) < 0 or self.VOWELS.find(word[i - 1]) < 0) and not (i + 1 == len(word) and i - 1 > 0 and self.VOWELS.find(word[i - 1]) < 0 and word[i] == 'e'):
+                        cnt += 1
         if cnt == 0:
             cnt = 1
         return cnt
-
 
     def relevance(self, word):
         v = 0.1
         c = 0.1
         l = len(word)
-        syllableWeight = 0.0034
+        syllable_weight = 0.0034
         v += self.vowels(word)
         c = c + l - v
         if c == 0.0:
             c = 0.1
         r = l + (v / c)
-        a = r + ((self.syllables(word) * syllableWeight))
+        a = r + ((self.syllables(word) * syllable_weight))
         return a
 
-
-    def hasTrailingChar(self, word):
+    def has_trailing_char(self, word):
         if len(word) < 1:
             return False
         char = word[-1]
@@ -169,107 +140,93 @@ class TextProcessing:
                     return True
         return False
 
-
-    def hasBadWords(self, wordList):
-        if wordList is None:
-            return wordList
-        for w in wordList:
-            if self.isBadWord(w):
+    def has_bad_words(self, word_list):
+        if word_list is None:
+            return word_list
+        for w in word_list:
+            if self.is_bad_word(w):
                 return True
         return False
 
-
-    def hasSlang(self, wordList):
-        if wordList is None:
-            return wordList
-        for w in wordList:
-            if w in self._slangLingo:
+    def has_slang(self, word_list):
+        if word_list is None:
+            return word_list
+        for w in word_list:
+            if w in self.slang_lingo:
                 return True
         return False
 
-
-    def hasNetLingo(self, wordList):
-        if wordList is None:
-            return wordList
-        for w in wordList:
-            if w in self._netlingo:
+    def has_net_lingo(self, word_list):
+        if word_list is None:
+            return word_list
+        for w in word_list:
+            if w in self.net_lingo:
                 return True
         return False
-
 
     def transpose(self, word):
-        if word in self._transposeMap:
-            return self._transposeMap[word]
+        if word in self.transpose_map:
+            return self.transpose_map[word]
         return word
 
-
-    def fixTime(self, word):
+    def fix_time(self, word):
         r = re.compile(r"([0-9]?[0-9]?[:]?[0-9]+[a|p])")
-        if r.findall(word) == []:
+        if r.findall(word) is []:
             return word
         return word.replace("am", " am").replace("pm", " pm")
 
-
-    def fixSpelling(self, word):
-        if word in self._misspelledWords:
-            return self._misspelledWords[word]
+    def fix_spelling(self, word):
+        if word in self.misspelled_words:
+            return self.misspelled_words[word]
         return word
 
-
-    def fixSlangLingo(self, word):
-        if word in self._slangLingo:
-            return self._slangLingo[word]
+    def fix_slang_lingo(self, word):
+        if word in self.slang_lingo:
+            return self.slang_lingo[word]
         return word
 
-
-    def twitterTranslate(self, word):
-        if word in self._twlingo:
-            return self._twlingo[word]
+    def twitter_translate(self, word):
+        if word in self.twlingo:
+            return self.twlingo[word]
         return word
 
-
-    def transNetLingo(self, word):
-        if word in self._netlingo:
-            return self._netlingo[word]
+    def trans_net_lingo(self, word):
+        if word in self.net_lingo:
+            return self.net_lingo[word]
         return word
 
-
-    def transDoubleWord(self, word):
-        if word in self._doublewords:
-            return self._doublewords[word]
+    def trans_double_word(self, word):
+        if word in self.double_words:
+            return self.double_words[word]
         return word
 
-
-    def convertSingleCharacterSymbolsToPeriods(self, text):
-        wordList = []
+    def convert_single_character_symbols_to_periods(self, text):
+        word_list = []
         words = text.split(" ")
         for w in words:
-            if len(w) == 1 and self.isNumber(w) == False:
-                wordList.append(". ")
+            if len(w) == 1 and self.is_number(w) == False:
+                word_list.append(". ")
                 continue
-            wordList.append(w)
-        return " ".join(wordList)
+            word_list.append(w)
+        return " ".join(word_list)
 
+    def strip_special_chars(self, text):
+        return text.replace("\n", " ").replace("\r", " ").\
+            replace("\t", " ").replace("(", " ").replace(")", " ").\
+            replace("[", " ").replace("]", " ").replace(";", " ").\
+            replace("!", " ").replace("~", " ").replace("%", " ").\
+            replace("*", " ").replace("?", " ").replace("+", " ").\
+            replace("=", " ").replace("~", " ").replace("`", "'").\
+            replace("|", " ").replace("#", " ")
 
-    def stripSpecialChars(self, text):
-        return text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace("(", " ").replace(")",
-                                                                                                       " ").replace(
-            "[", " ").replace("]", " ").replace(";", " ").replace("!", " ").replace("~", " ").replace("%", " ").replace(
-            "*",
-            " ").replace("?", " ").replace("+", " ").replace("=", " ").replace("~", " ").replace("`", "'").replace("|",
-                                                                                                                   " ").replace(
-            "#", " ")
-
-
-    def stripTrailingPeriods(self, word):
+    def strip_trailing_periods(self, word):
         while word.endswith("."):
             word = word[:-1]
         return word
 
-
-    def decodeSpecialChars(self, text):
-        # note double quoutes converted to single quoute on purpose! Since they will be removed anyway
-        htmlEntityTranslation = {
+    def decode_special_chars(self, text):
+        # note double quotes converted to single quotes on purpose! Since they will be removed anyway
+        html_entity_translation = {
             "&#34;": "\"",
             "&#39;": "'",
             "&#96;": "'",
@@ -298,43 +255,40 @@ class TextProcessing:
             "&deg;": " degrees "
         }
         r = re.compile(r"&[#0-9a-z]+[;]")
-        newText = text.replace("&amp;", "&").replace("''", "'")
-        lst = r.findall(newText)
+        new_text = text.replace("&amp;", "&").replace("''", "'")
+        lst = r.findall(new_text)
         if lst == []:
-            return newText
+            return new_text
         for pat in lst:
             try:
-                p = htmlEntityTranslation[pat]
-                newText = newText.replace(pat, p)
+                p = html_entity_translation[pat]
+                new_text = new_text.replace(pat, p)
             except:
-                newText = newText.replace(pat, " ")
-        return newText
+                new_text = new_text.replace(pat, " ")
+        return new_text
 
-
-    def extractUnicodeNumber(self, word):
+    def extract_unicode_number(self, word):
         r1 = re.compile(r"&[#0-9a-z]+[;]")
         r2 = re.compile(r"[0-9]+")
-        newWord = word.replace("&amp;", "&").replace("''", "'")
-        lst = r1.findall(newWord)
-        if lst == []:
+        new_word = word.replace("&amp;", "&").replace("''", "'")
+        lst = r1.findall(new_word)
+        if lst is []:
             return int(0)
-        ll = r2.findall(newWord)
-        if ll == []:
+        ll = r2.findall(new_word)
+        if ll is []:
             return int(0)
         return int(ll[0])
 
-
-    def extractURIs(self, text):
+    def extract_URIs(self, text):
         r = re.compile(r"(http://[^ ]+)")
         uris = r.findall(text)
-        newuris = []
+        new_uris = []
         for uri in uris:
             u = re.sub(r'\.+$', '', uri)
-            newuris.append(u)
-        return newuris
+            new_uris.append(u)
+        return new_uris
 
-
-    def extractContacts(self, text):
+    def extract_contacts(self, text):
         lst = []
         r = re.compile(r"([\@][a-z0-9^.]+)")
         lst = r.findall(text)
@@ -343,13 +297,11 @@ class TextProcessing:
                 lst.remove(item)
         return lst
 
-
-    def extractTopics(self, text):
+    def extract_topics(self, text):
         r = re.compile(r"(#\w+)")
         return r.findall(text)
 
-
-    def handleEmbeddedDash(self, word):
+    def handle_embedded_dash(self, word):
         r = re.compile(r"([a-z]+)[\-]([a-z]+)")
         res = r.findall(word)
         l = len(res)
@@ -358,79 +310,68 @@ class TextProcessing:
         word1 = res[0][0]
         word2 = res[0][1]
         if len(word1) > 2:
-            if word1 == "pre" or word1 == "post": # exception for pre-school, pre-calculus etc...
+            if word1 == "pre" or word1 == "post":  # exception for pre-school, pre-calculus etc...
                 return word
-            if self.dictionaryWord(word1) == True and self.dictionaryWord(word2) == True:
+            if self.dictionary_word(word1) and self.dictionary_word(word2):
                 pair = word1 + " " + word2
                 return pair
         return word
 
-
-    def isDaleWord(self, word):
-        r = self.binarySearch(self._daleWords, word)
+    def is_dale_word(self, word):
+        r = self.binary_search(self.dale_words, word)
         if r != -1:
             return True
         return False
 
-
-    def isTwitterCommonWord(self, word):
-        r = self.binarySearch(self._twitterCommonWords, word)
+    def is_twitter_common_word(self, word):
+        r = self.binary_search(self.twitter_common_words, word)
         if r != -1:
             return True
         return False
 
-
-    def isNoiseWord(self, word):
-        r = self.binarySearch(self._noiseWords, word)
+    def is_noise_word(self, word):
+        r = self.binary_search(self.noise_words, word)
         if r != -1:
             return True
         return False
 
-
-    def isBadWord(self, word):
-        r = self.binarySearch(self._badwords, word)
+    def is_bad_word(self, word):
+        r = self.binary_search(self.bad_words, word)
         if r != -1:
             return True
         return False
 
-
-    def isNameCallingWord(self, word):
-        r = self.binarySearch(self._namecallingWords, word)
+    def is_name_calling_word(self, word):
+        r = self.binary_search(self.name_calling_words, word)
         if r != -1:
             return True
         return False
 
-
-    def isTime(self, word):
+    def is_time(self, word):
         r = re.compile(r"[0-9]+\:[0-9]+")
         if r.findall(word) == []:
             return False
         return True
 
-
-    def isURI(self, word):
+    def is_URI(self, word):
         return "http://" in word
 
-
     def isEmail(self, word):
-        return ('@' in word and '.' in word and self.isDomain(word) == True)
+        return '@' in word and '.' in word and self.is_domain(word)
 
-
-    def isCommaInNumber(self, text):
+    def is_comma_in_number(self, text):
         r = re.compile(r"([0-9]+,[0-9]+)")
         if r.match(text) is None:
             return False
         return True
 
-
-    def isDecimal(self, text):
+    def is_decimal(self, text):
         r = re.compile(r"([0-9]+\.[0-9]+)")
         if r.match(text) is None:
             return False
         return True
 
-
-    def isNumber(self, text):
+    def is_number(self, text):
         try:
             num = text.replace(",", "").replace(".", "")
             float(num)
@@ -439,83 +380,75 @@ class TextProcessing:
             pass
         return False
 
-
-    def isMoney(self, text):
+    def is_money(self, text):
         r = re.compile(r"(^[$]+[0-9]+[\.]?[0-9]?)")
-        if r.match(text) == None:
+        if r.match(text) is None:
             return False
         return True
-
 
     def isDate(self, text):
         r1 = re.compile(r"([0-9]?[0-9]+[.\-/]+[0-9]?[0-9]+[.\-/]+[0-9]?[0-9]?[0-9]?[0-9]?)")
-        if r1.match(text) == None:
+        if r1.match(text) is None:
             r2 = re.compile(r"([0-9]?[0-9]?[\-/]+[0-9]?[0-9]?)")
-            if r2.match(text) == None:
+            if r2.match(text) is None:
                 return False
         return True
 
 
-    def isName(self, word):
-        r = self.binarySearch(self._nameWords, word)
+    def is_name(self, word):
+        r = self.binary_search(self.name_words, word)
         if r != -1:
             return True
         return False
 
-
-    def isDomain(self, word):
-        r = self.binarySearch(self._domainExtensions, word)
+    def is_domain(self, word):
+        r = self.binary_search(self.domain_extensions, word)
         if r != -1:
             return True
         return False
 
-
-    def isCommonPhrase(self, text):
-        r = self.binarySearch(self._commonPhrases, text)
+    def is_common_phrase(self, text):
+        r = self.binary_search(self.common_phrases, text)
         if r != -1:
             return True
         return False
 
-
-    def isKnownPhrase(self, text):
-        r = self.binarySearch(self._knownPhrases, text)
+    def is_known_phrase(self, text):
+        r = self.binary_search(self.known_phrases, text)
         if r != -1:
             return True
         return False
 
-
-    def isSentenceEnd(self, text):
+    def is_sentence_end(self, text):
         return text[-1:]
 
-
-    def isEnglish(self, wordList):
-        if wordList == None:
-            return wordList
+    def is_english(self, word_list):
+        if word_list is None:
+            return word_list
         cnt = 0.0
-        wll = len(wordList)
+        wll = len(word_list)
         if wll == 0:
             return False
-        for w in wordList:
+        for w in word_list:
             word = w.lower()
-            un = self.extractUnicodeNumber(word)
-            if (un > 190 and un < 256):
+            un = self.extract_unicode_number(word)
+            if un > 190 and un < 256:
                 return False
-            elif self.isNoiseWord(word):
+            elif self.is_noise_word(word):
                 cnt += 1
-            elif self.isDaleWord(word):
+            elif self.is_dale_word(word):
                 cnt += 1
-            elif self.dictionaryWord(word):
+            elif self.dictionary_word(word):
                 cnt += 1
         percent = (cnt / wll) * 100.0
         if percent > 30.0:
             return True
         return False
 
-
-    def findPhrases(self, wordList, phrases, stemmedphrases):
-        if wordList is None:
+    def find_phrases(self, word_list, phrases, stemmed_phrases):
+        if word_list is None:
             return
-        text = nltk.word_tokenize("".join(w + " " for w in wordList))
+        text = nltk.word_tokenize("".join(w + " " for w in word_list))
         lst = nltk.pos_tag(text)
         bigram = nltk.bigrams(lst)
         trigram = nltk.trigrams(lst)
@@ -525,8 +458,8 @@ class TextProcessing:
         # handle unigrams
         for i in range(len(lst)):
             word = lst[i][0]
-            if self.dictionaryWord(word) or self.isDaleWord(word) or self.isNoiseWord(word) or self.isBadWord(
-                    word) or self.isTwitterCommonWord(word) or self.isName(word) or self.isNameCallingWord(
+            if self.dictionary_word(word) or self.is_dale_word(word) or self.is_noise_word(word) or self.is_bad_word(
+                    word) or self.is_twitter_common_word(word) or self.is_name(word) or self.is_name_calling_word(
                     word) or word == "am" or word == "pm":
                 continue
 
@@ -537,8 +470,8 @@ class TextProcessing:
                 word = lst[i][0]
                 if word.endswith(token):
                     word = word[:-len(token)]
-                    if self.dictionaryWord(word) or self.isNoiseWord(word) or self.isBadWord(
-                            word) or self.isTwitterCommonWord(word) or self.isName(word) or self.isNameCallingWord(
+                    if self.dictionary_word(word) or self.is_noise_word(word) or self.is_bad_word(
+                            word) or self.is_twitter_common_word(word) or self.is_name(word) or self.is_name_calling_word(
                             word):
                         bcon = True
                         break
@@ -546,29 +479,29 @@ class TextProcessing:
             if bcon:
                 continue
 
-            if lst[i][1].startswith("N") and self.dictionaryWord(lst[i][0]) == False:
+            if lst[i][1].startswith("N") and self.dictionary_word(lst[i][0]) == False:
                 word = lst[i][0]
-                if not self.isCommonPhrase(word):
+                if not self.is_common_phrase(word):
                     phrases.append(word)
-                    if stemmedphrases is not None:
-                        stemmedphrases.append(self.stemWord(word))
+                    if stemmed_phrases is not None:
+                        stemmed_phrases.append(self.stem_word(word))
 
         # handle bigrams
         for phrase in bigram:
-            testPhrase = phrase[0][0] + " " + phrase[1][0]
-            if self.isKnownPhrase(testPhrase):
-                phrases.append(testPhrase)
+            test_phrase = phrase[0][0] + " " + phrase[1][0]
+            if self.is_known_phrase(test_phrase):
+                phrases.append(test_phrase)
                 continue
 
-            #if self.isDaleWord(phrase[0][0]) and self.isDaleWord(phrase[1][0]):
+            #if self.is_dale_word(phrase[0][0]) and self.is_dale_word(phrase[1][0]):
             #	continue
-            #if self.isBadWord(phrase[0][0]) or self.isBadWord(phrase[1][0]):
+            #if self.is_bad_word(phrase[0][0]) or self.is_bad_word(phrase[1][0]):
             #	continue
-            #if self.isNameCallingWord(phrase[0][0]) or self.isNameCallingWord(phrase[1][0]):
+            #if self.is_name_calling_word(phrase[0][0]) or self.is_name_calling_word(phrase[1][0]):
             #	continue
-            #if phrase[0][0].endswith("am") == True or phrase[0][0].endswith("pm"):
+            #if phrase[0][0].endswith("am") or phrase[0][0].endswith("pm"):
             #	continue
-            #if phrase[1][0].endswith("am") == True or phrase[1][0].endswith("pm"):
+            #if phrase[1][0].endswith("am") or phrase[1][0].endswith("pm"):
             #	continue
 
             w1 = False
@@ -577,31 +510,31 @@ class TextProcessing:
                 w1 = True
             if (phrase[1][1]).startswith("N") or (phrase[1][1]).startswith("CD"):
                 w2 = True
-            if w1 == True and w2 == True:
-                testPhrase = phrase[0][0] + " " + phrase[1][0]
-                if not self.isCommonPhrase(testPhrase):
-                    phrases.append(testPhrase)
-                    if stemmedphrases is not None:
-                        stemmedphrases.append(self.stemWord(phrase[0][0]) + " " + self.stemWord(phrase[1][0]))
-                        #if self.isKnownPhrase(testPhrase): # is a known phrase so remove phrase sub words
-                        #	words = testPhrase.split(' ')
+            if w1 and w2:
+                test_phrase = phrase[0][0] + " " + phrase[1][0]
+                if not self.is_common_phrase(test_phrase):
+                    phrases.append(test_phrase)
+                    if stemmed_phrases is not None:
+                        stemmed_phrases.append(self.stem_word(phrase[0][0]) + " " + self.stem_word(phrase[1][0]))
+                        #if self.is_known_phrase(test_phrase): # is a known phrase so remove phrase sub words
+                        #	words = test_phrase.split(' ')
                         #	for i in range(len(words)):
-                        #		self.removeSingleWordFromList(phrases, words[i])
+                        #		self.remove_single_word_from_list(phrases, words[i])
                         #		if stemmedphrases != None:
-                        #			self.removeSingleWordFromList(stemmedphrases, self.stemWord(words[i]))
+                        #			self.remove_single_word_from_list(stemmedphrases, self.stem_word(words[i]))
 
         # handle trigrams
         for phrase in trigram:
-            testPhrase = phrase[0][0] + " " + phrase[1][0] + " " + phrase[2][0]
-            if self.isKnownPhrase(testPhrase):
-                phrases.append(testPhrase)
+            test_phrase = phrase[0][0] + " " + phrase[1][0] + " " + phrase[2][0]
+            if self.is_known_phrase(test_phrase):
+                phrases.append(test_phrase)
                 continue
 
-            #if self.isDaleWord(phrase[0][0]) and self.isDaleWord(phrase[1][0]) and self.isDaleWord(phrase[2][0]):
+            #if self.is_dale_word(phrase[0][0]) and self.is_dale_word(phrase[1][0]) and self.is_dale_word(phrase[2][0]):
             #	continue
-            #if self.isBadWord(phrase[0][0]) or self.isBadWord(phrase[1][0]) or self.isBadWord(phrase[2][0]):
+            #if self.is_bad_word(phrase[0][0]) or self.is_bad_word(phrase[1][0]) or self.is_bad_word(phrase[2][0]):
             #	continue
-            #if self.isNameCallingWord(phrase[0][0]) or self.isNameCallingWord(phrase[1][0]) or self.isNameCallingWord(phrase[2][0]):
+            #if self.is_name_calling_word(phrase[0][0]) or self.is_name_calling_word(phrase[1][0]) or self.is_name_calling_word(phrase[2][0]):
             #	continue
             #if phrase[0][0].endswith("am") == True or phrase[0][0].endswith("pm"):
             #	continue
@@ -618,28 +551,27 @@ class TextProcessing:
                 w2 = True
             if (phrase[2][1]).startswith("N") or (phrase[2][1]).startswith("CD"):
                 w3 = True
-            if w1 == True and w2 == True and w3 == True:
-                testPhrase = phrase[0][0] + " " + phrase[1][0] + " " + phrase[2][0]
-                if not self.isCommonPhrase(testPhrase):
-                    phrases.append(testPhrase)
-                    if stemmedphrases is not None:
-                        stemmedphrases.append(
-                            self.stemWord(phrase[0][0]) + " " + self.stemWord(phrase[1][0]) + " " + self.stemWord(
+            if w1 and w2 and w3:
+                test_phrase = phrase[0][0] + " " + phrase[1][0] + " " + phrase[2][0]
+                if not self.is_common_phrase(test_phrase):
+                    phrases.append(test_phrase)
+                    if stemmed_phrases is not None:
+                        stemmed_phrases.append(
+                            self.stem_word(phrase[0][0]) + " " + self.stem_word(phrase[1][0]) + " " + self.stem_word(
                                 phrase[2][0]))
-                        #if self.isKnownPhrase(testPhrase): # is a known phrase so remove phrase sub words
-                        #	words = testPhrase.split(' ')
+                        #if self.is_known_phrase(test_phrase): # is a known phrase so remove phrase sub words
+                        #	words = test_phrase.split(' ')
                         #	for i in range(len(words)):
-                        #		self.removeSingleWordFromList(phrases, words[i])
+                        #		self.remove_single_word_from_list(phrases, words[i])
                         #		if stemmedphrases != None:
-                        #			self.removeSingleWordFromList(stemmedphrases, self.stemWord(words[i]))
+                        #			self.remove_single_word_from_list(stemmedphrases, self.stem_word(words[i]))
 
-
-    def richnessOfText(self, wordList):
-        if wordList is None:
+    def richness_of_text(self, word_list):
+        if word_list is None:
             return 0
-        if not len(wordList):
+        if not len(word_list):
             return 0
-        text = nltk.word_tokenize("".join(w + " " for w in wordList))
+        text = nltk.word_tokenize("".join(w + " " for w in word_list))
         lst = nltk.pos_tag(text)
         ll = len(lst)
         score = 0.0
@@ -664,11 +596,10 @@ class TextProcessing:
         # testing:  nltk.pos_tag(nltk.word_tokenize("Which means that there is the equivalent of 4-5 people in this room, despite the fact that only two of us breathe oxygen."))
         return score
 
-
-    def getNounCount(self, wordList):
-        if wordList is None:
-            return wordList
-        text = nltk.word_tokenize("".join(w + " " for w in wordList))
+    def get_noun_count(self, word_list):
+        if word_list is None:
+            return word_list
+        text = nltk.word_tokenize("".join(w + " " for w in word_list))
         lst = nltk.pos_tag(text)
         nouns = 0
         for i in range(len(lst)):
@@ -676,34 +607,32 @@ class TextProcessing:
                 nouns += 1
         return nouns
 
-    def removePeriods(self, wordList):
-        if wordList is None:
-            return wordList
+    def remove_periods(self, word_list):
+        if word_list is None:
+            return word_list
         exceptions = ["dr.", "gen.", "mr.", "ms.", "mrs.", "jr.", "sr.", "maj.", "st.", "lt.", "sen.", "dir.", "vp."]
-        newList = []
-        personTag = False
-        for w in wordList:
+        new_list = []
+        for w in word_list:
             if len(w) == 0:
                 continue
-            personTag = w in exceptions
-            if (personTag == False) and (self.isMoney(w) == False) and (self.isNumber(w) == False) and (
-                    self.isDomain(w) == False): # and (self.isSentenceEnd(w) == True):
+            person_tag = w in exceptions
+            if (not person_tag) and (not self.is_money(w)) and (not self.is_number(w)) and (
+                    not self.is_domain(w)):  # and (self.is_sentence_end(w) == True):
                 wl = w.split('.')
                 for aw in wl:
                     if len(aw) > 0:
-                        newList.append(aw)
+                        new_list.append(aw)
             else:
                 while w.endswith("."):
                     w = w[:-1]
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
-
-    def removeQoutes(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
+    def remove_quotes(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
             if len(w) == 0:
                 continue
             if w.startswith("'"):
@@ -726,41 +655,38 @@ class TextProcessing:
                 w = w[:-1]
             if w.endswith('".'):
                 w = w[:-2]
-            newList.append(w)
-        return newList
+            new_list.append(w)
+        return new_list
 
-
-    def removeCommas(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
+    def removeCommas(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
             if len(w) == 0:
                 continue
-            if not self.isCommaInNumber(w):
+            if not self.is_comma_in_number(w):
                 s = w.split(",")
                 for sw in s:
-                    newList.append(sw)
+                    new_list.append(sw)
             else:
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
-
-    def removeUnicodeChars(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
+    def remove_unicode_chars(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
         r = re.compile(r"&#([0-9][0-9][0-9])")
-        for w in wordList:
+        for w in word_list:
             if len(w) == 0:
                 continue
             res = r.findall(w)
             if len(res) < 1:
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
-
-    def removeLeadingChar(self, word, char):
+    def remove_leading_char(self, word, char):
         newWord = ""
         if word.startswith(char):
             newWord = word[1:]
@@ -768,34 +694,31 @@ class TextProcessing:
             newWord = word
         return newWord
 
+    def remove_leading_chars(self, word, char_list):
+        new_word = word
+        for char in char_list:
+            if new_word[0] == char:
+                new_word = new_word[1:]
+        return new_word
 
-    def removeLeadingChars(self, word, charlist):
-        newWord = word
-        for char in charlist:
-            if newWord[0] == char:
-                newWord = newWord[1:]
-        return newWord
-
-
-    def cleanupUnicodeCharsInTopics(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
+    def cleanup_unicode_chars_in_topics(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
         r = re.compile(r"#([0-9][0-9][0-9])")
-        for w in wordList:
+        for w in word_list:
             if len(w) == 0:
                 continue
             res = r.findall(w)
             if len(res) < 1:
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
-
-    def cleanupStrayChars(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
+    def cleanup_stray_chars(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
             wl = len(w)
             if wl == 0:
                 continue
@@ -816,151 +739,137 @@ class TextProcessing:
             w = w.replace("!", " ")
             w = w.replace("'", " ")
             if len(w) > 0:
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
-
-    def removePreceedingPoundChar(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
+    def remove_preceeding_pound_char(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
             if len(w) == 0:
                 continue
             w = w.replace("#", "")
             if len(w) > 0:
-                newList.append(w)
-        return newList
-
+                new_list.append(w)
+        return new_list
 
     def re_show(self, pat, s):
         print re.compile(pat, re.M).sub("{\g<0>}", s.rstrip()), '\n'
 
+    def stem_word(self, word):
+        return self.pstemmer.stem(word, 0, len(word) - 1)
 
-    def stemWord(self, word):
-        return self.pStemmer.stem(word, 0, len(word) - 1)
+    def stemWordList(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for i in range(len(word_list)):
+            new_list.append(self.pstemmer.stem(word_list[i], 0, len(word_list[i]) - 1))
+        return new_list
 
-
-    def stemWordList(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for i in range(len(wordList)):
-            newList.append(self.pStemmer.stem(wordList[i], 0, len(wordList[i]) - 1))
-        return newList
-
-
-    def splitWords_old(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
+    def split_words_old(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
         tt = string.maketrans(" -", "..")
-        for w in wordList:
+        for w in word_list:
             if ' ' in w or '-' in w:
                 for nw in w.translate(tt).split('.'):
-                    newList.append(nw)
+                    new_list.append(nw)
             else:
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
 
-    def splitWords(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
+    def split_words(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
             if ' ' in w:
                 nw = w.split(' ')
-                newList.append(nw[0])
-                newList.append(nw[1])
+                new_list.append(nw[0])
+                new_list.append(nw[1])
             else:
-                newList.append(w)
-        return newList
+                new_list.append(w)
+        return new_list
 
-
-    def removeWord(self, wordList, removeWord):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
-            if w == removeWord:
+    def remove_word(self, word_list, remove_word):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
+            if w == remove_word:
                 continue
-            newList.append(w)
-        return newList
+            new_list.append(w)
+        return new_list
 
+    def remove_single_word_from_list(self, word_list, text):
+        if word_list is None:
+            return word_list
+        if text in word_list:
+            word_list.remove(text)
 
-    def removeSingleWordFromList(self, wordList, text):
-        if wordList is None:
-            return wordList
-        if text in wordList:
-            wordList.remove(text)
+    def remove_words_from_list(self, word_list, remove_word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
+            if not (w in remove_word_list):
+                new_list.append(w)
+        return new_list
 
-
-    def removeWordsFromList(self, wordList, removeWordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
-            if not (w in removeWordList):
-                newList.append(w)
-        return newList
-
-
-    def removeWordEnding(self, wordList, ending):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
+    def remove_word_ending(self, word_list, ending):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
             if not w.endswith(ending):
-                newList.append(w)
+                new_list.append(w)
             else:
-                newList.append(w[-len(ending)])
-        return newList
+                new_list.append(w[-len(ending)])
+        return new_list
 
+    def remove_suppress_words(self, word_list):
+        if word_list is None:
+            return word_list
+        new_list = []
+        for w in word_list:
+            if not (w in self.suppress_list):
+                new_list.append(w)
+        return new_list
 
-    def removeSuppressWords(self, wordList):
-        if wordList is None:
-            return wordList
-        newList = []
-        for w in wordList:
-            if not (w in self._suppressList):
-                newList.append(w)
-        return newList
-
-
-    def largestRepeatingPattern(self, text):
-        pat = ''
-        cnt = 0
-        largestPattern = ""
-        largestPatternCnt = 0
-        testText = text
-        tl = len(testText)
-        testText += (" " * tl)
+    def largest_repeating_pattern(self, text):
+        largest_pattern = ""
+        largest_pattern_count = 0
+        test_text = text
+        tl = len(test_text)
+        test_text += (" " * tl)
         for s in range(1, 5):
             for i in range(0, tl):
                 cnt = 0
-                pat = testText[i:i + s].rstrip()
+                pat = test_text[i:i + s].rstrip()
                 for j in range(i, tl, s):
-                    if pat == testText[j:j + s].rstrip():
+                    if pat == test_text[j:j + s].rstrip():
                         cnt += 1
-                        if largestPatternCnt < cnt:
-                            largestPatternCnt = cnt
-                            largestPattern = pat
+                        if largest_pattern_count < cnt:
+                            largest_pattern_count = cnt
+                            largest_pattern = pat
                     else:
                         break
-        return (largestPattern, largestPatternCnt)
+        return largest_pattern, largest_pattern_count
 
-
-    def convertToSentences(self, text):
+    def convert_to_sentences(self, text):
         if not text.endswith("."):
-            text = text + "."
+            text += "."
         sentences = []
         swl = []
-        wordList = text.split(" ")
+        word_list = text.split(" ")
 
-        newWordList = []
-        for w in wordList:
-            a = self.largestRepeatingPattern(w)
+        new_word_list = []
+        for w in word_list:
+            a = self.largest_repeating_pattern(w)
             if a[1] > 2:
                 b = []
                 if a[0] == ".":
@@ -969,11 +878,11 @@ class TextProcessing:
                     b = w.split("-")
                 for entry in b:
                     if entry != "":
-                        newWordList.append(entry)
+                        new_word_list.append(entry)
             else:
-                newWordList.append(w)
+                new_word_list.append(w)
 
-        for w in newWordList:
+        for w in new_word_list:
             if w != "":
                 swl.append(w)
             if w.endswith(".") or w.endswith("!") or w.endswith("?") or w.endswith(":") or w.endswith(
@@ -983,9 +892,7 @@ class TextProcessing:
                 swl = []
 
         if len(sentences) == 0:
-            ds = []
-            ds.append(swl)
-            return ds
+            return [swl]
 
         return sentences
 

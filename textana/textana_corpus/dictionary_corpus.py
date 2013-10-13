@@ -1,3 +1,7 @@
+""" dictionary word list
+Copyright 2009 Carlos Justiniano. All Rights Reserved.
+"""
+
 dictionary = [
 "aam",
 "aard-vark",
