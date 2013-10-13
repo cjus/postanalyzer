@@ -1,4 +1,8 @@
 """server.py: entry point for post analyzer server
+Post Analyzer is a text processing server. It analyzes a text block (forum post - for example) and it returns a JSON
+document with its analysis.  The analysis can be used to determine key phrases and whether the post contains
+colloquialisms (bad words or the use of slang).  The underlying text processing engine correct misspellings and expands
+net slang to full phrases during its analysis.
 """
 
 __author__ = ('Carlos Justiniano (carlos.justiniano@gmail.com)',)
@@ -8,7 +12,6 @@ import tornado.web
 import tornado.httpserver
 import tornado.httputil
 import json
-import string
 from textana.textana import ProcessText
 
 
@@ -68,5 +71,5 @@ application = tornado.web.Application([
 ])
 
 if __name__ == "__main__":
-    application.listen(8889)
+    application.listen(8888)
     tornado.ioloop.IOLoop.instance().start()
