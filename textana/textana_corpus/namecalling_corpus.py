@@ -23,4 +23,3 @@ name_calling_words = [
 ]
 
 name_calling_words.sort()
-

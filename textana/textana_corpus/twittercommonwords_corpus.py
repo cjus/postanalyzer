@@ -7,4 +7,3 @@ twitter_common_words = [
 ]
 
 twitter_common_words.sort()
-

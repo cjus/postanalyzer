@@ -462,4 +462,3 @@ known_phrases = [
 ]
 
 known_phrases.sort()
-

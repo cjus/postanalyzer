@@ -70,4 +70,3 @@ domain_extensions = [
 ]
 
 domain_extensions.sort()
-

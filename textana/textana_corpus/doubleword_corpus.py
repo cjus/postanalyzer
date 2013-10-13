@@ -24,4 +24,3 @@ double_words = {
     "without": "with out",
     "*": "*"
 }
-
