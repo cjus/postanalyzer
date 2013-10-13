@@ -50,3 +50,10 @@ This code is offered under a BSD license.
 I started playing with textual analysis in 2009 when I was working on a kids site (educational search engine) called ZoeyBot.
 I later used the Python code used here to create tweetspeedreader and twsift - tools that process Twitter streams. Along the way
 I learned a lot about natural language processing and now have a need for a server which can, once again, process text. I'm offering the code here in case anyone else has that same need.
+
+### Roadmap
+Since this code is from my older Python experiences it does need some work to bring it up to modern standards.
+I've recently made a pass towards PEP8 adherence, however, the code in the core engine could use some DRYing up.
+Most of the features offered by the core engine are not being exposed in the server's API - so there lie opportunities.
+Additionally, the core really need unit tests!  All of this requires time/effort and I may not get to this any time soon.
+Contributions are welcomed!
